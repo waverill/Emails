@@ -153,7 +153,7 @@ namespace Emails
         private List<string> getAudits(string patchpath)
         {
             List<string> audits = new List<string>();
-            int counter = 0;
+            //int counter = 0;
            // string b = "@(\[" + this.IAVA_ID + "\]" + " " + this.IAVA_Title + ")";
            // MessageBox.Show(b);
             Regex yep = new Regex(@"(\[" + this.IAVA_ID + @"\] " + this.IAVA_Title + ")");
