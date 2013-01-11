@@ -100,7 +100,7 @@
             Match m = build.Match(result);
             return m.Value;
         }
-        protected void Construct_Final(string html_body, string iava_name, string iava_number, List<string> audits)
+        protected String Construct_Final(string html_body, string iava_name, string iava_number, List<string> audits, Boolean save)
         {
             Microsoft.Office.Interop.Outlook.Application app = new Microsoft.Office.Interop.Outlook.Application();
            // Regex exp = new Regex(@"Title:.*\r\n");
@@ -118,11 +118,15 @@
            // string iava_name = Matches[0].Value.Substring(Matches[0].Value.IndexOf(":") + 1).Trim();
            // string iava_number = Matches2[0].Value.Substring(Matches2[0].Value.IndexOf(":") + 1).Trim().Substring(0, 11);
             string subj = "Acknowledgement: Release of " + iava_number + " - " + iava_name;
-            finalmessage.Body = make_final_body(iava_number, iava_name, this.get_build_num(), audits) + html_body;
+            finalmessage.Body = make_final_body(iava_number, iava_name, this.get_latest_build(), audits) + html_body;
             finalmessage.Subject = subj;
             finalmessage.To = "iava@eeye.com";
+           // MessageBox.Show(this.get_build_num());
+            if (save)
             this.Save_to_Draftbox(finalmessage);
 
+            return finalmessage.Body.ToString();
+            
         }
 
         protected List<_MI_> Search_Sender(string subfolder_name, string query, bool only_unread)

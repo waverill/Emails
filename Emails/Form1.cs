@@ -37,6 +37,7 @@ namespace Emails
 
         private void button1_Click(object sender, EventArgs e)
         {
+            Boolean save = checkBox1.Checked;
             int size = textBox1.Text.Length + 1;
             this.IAVAs = new List<IavaInterface>();
             this.IAVA_content = new List<string>();
@@ -57,8 +58,8 @@ namespace Emails
                 MessageBox.Show(msg);
                 int c = 0;
                 string msg2 = "";
-                Regex iava = new Regex(@"(2012-[A-B]-[0-9]{4})");
-                Regex title = new Regex(@"^Precoord 2012-[A-B]-[0-9]{4} (.*)$");
+                Regex iava = new Regex(@"(201[2-3]-[A-B]-[0-9]{4})");
+                Regex title = new Regex(@"^Precoord 2013-[A-B]-[0-9]{4} (.*)$");
                 if (count == 0)
                 {
                     msg2 = "Could not find any Precoord (.docx) files in selected directory.  Please try again.";
@@ -93,7 +94,7 @@ namespace Emails
                       
                         string temp2 = II.iava_ack_template();
                         temp2 += temp;
-                        II.Make_IAVA_Pre_ACK(temp2);
+                        II.Make_IAVA_Pre_ACK(temp2,save);
                         //wordObject.Quit();
                     }
                     catch (Exception j)
@@ -102,8 +103,8 @@ namespace Emails
                     }
                 }
                
-                textBox3.Text = msg2;
-
+                textBox4.Text = msg2;
+                textBox4.Visible = true;
                // System.Windows.Forms.MessageBox.Show(msg);
                           
             }
@@ -151,6 +152,8 @@ namespace Emails
         private void button4_Click(object sender, EventArgs e)
         {
             // this.IAVAs[0].DoFinalAcks2(textBox2.Text); 
+            string cont = "";
+            Boolean save = checkBox1.Checked;
             int size = textBox1.Text.Length + 1;
             try
             {
@@ -159,7 +162,12 @@ namespace Emails
                 int count = 0;
                 foreach (string f in can_files)
                 {
-                    if (f.Substring(f.Length - 5) == ".docx" && f.Substring(size, 5) == "2012-")
+                    if (f.Substring(f.Length - 5) == ".docx" && (f.Substring(size, 5) == "2013-" || f.Substring(size,5) == "2012-")) 
+                    {
+                        files.Add(f);
+                        count++;
+                    }
+                    else if (f.Substring(f.Length - 5) == ".html" && (f.Substring(size,5) == "2013-"|| f.Substring(size,5) == "2012-"))
                     {
                         files.Add(f);
                         count++;
@@ -167,25 +175,54 @@ namespace Emails
                 }
                 string msg = "Found " + count + " IAVA files.";
                 MessageBox.Show(msg);
-                Regex iava = new Regex(@"(2012-[A-B]-[0-9]{4})");
-                Regex title = new Regex(@"^2012-[A-B]-[0-9]{4} (.*)$");
-                foreach (string f in files)
+                Regex iava = new Regex(@"(201[2-3]-[A-B]-[0-9]{4})");
+                if (count > 0)
                 {
-                   try
+                    foreach (string f in files)
                     {
-                        DocxTextReader docxReader = new DocxTextReader(f);
-                        string temp = docxReader.getDocumentText();
-                        Match m = iava.Match(f.Substring(size));
-                        Match m2 = title.Match(f.Substring(size));
-                        string iav_title = m2.Groups[1].Captures[0].ToString();
-                        iav_title = iav_title.Substring(0, iav_title.Length - 5);
-                        IavaInterface II = new IavaInterface(m.Value, iav_title);
-                        II.DoFinalAcks3(temp, textBox2.Text);                       
+                        if (f.Substring(f.Length - 5) == ".html")
+                        {
+                            Regex title = new Regex(@"_(.*)$");
+                            try
+                            {
+                                Match m_iava = iava.Match(f.Substring(size));
+                                Match m_title = title.Match(f.Substring(size));
+                                string real_title = m_title.ToString().Substring(1, m_title.ToString().Length - 6);
+                              //  MessageBox.Show(real_title);
+                                string text = File.ReadAllText(f);
+                                IavaInterface II = new IavaInterface(m_iava.Value, real_title);
+                                cont+=II.DoFinalAcks3(text, textBox2.Text, save);
+
+                            }
+                            catch (Exception j)
+                            {
+                                MessageBox.Show(j.Message);
+                            }
+                            
+                        }
+                        else
+                        {
+                            Regex title = new Regex(@" (.*)$");
+                            try
+                            {
+                                DocxTextReader docxReader = new DocxTextReader(f);
+                                string temp = docxReader.getDocumentText();
+                                Match m = iava.Match(f.Substring(size));
+                                Match m2 = title.Match(f.Substring(size));
+                                string iav_title = m2.Groups[1].Captures[0].ToString();
+                                iav_title = iav_title.Substring(0, iav_title.Length - 5);
+                                IavaInterface II = new IavaInterface(m.Value, iav_title);
+                                cont+=II.DoFinalAcks3(temp, textBox2.Text, save);
+                            }
+                            catch (Exception j)
+                            {
+                                MessageBox.Show(j.Message);
+                            }
+
+                        }
                     }
-                    catch (Exception j)
-                    {
-                        MessageBox.Show(j.Message);
-                    }
+                    textBox4.Visible = true;
+                    textBox4.Text = cont;
                 }
             }
             catch (Exception l)
@@ -199,7 +236,35 @@ namespace Emails
 
         }
 
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBox1_SelectedIndexChanged_1(object sender, EventArgs e)
+        {
+            textBox4.Visible = false;
+            if (comboBox1.SelectedIndex == 0) //Precoords
+            {
+                label1.Visible = true;
+                textBox1.Visible = true;
+                button2.Visible = true;
+                button1.Visible = true;
+                label2.Visible = false;
+                textBox2.Visible = false;
+                button3.Visible = false;
+                button4.Visible = false;
+
+            }
+            else if (comboBox1.SelectedIndex == 1) //Finals
+            {
+                label1.Visible = true;
+                textBox1.Visible = true;
+                button2.Visible = true;
+                button1.Visible = false;
+                label2.Visible = true;
+                textBox2.Visible = true;
+                button3.Visible = true;
+                button4.Visible = true;
+            }
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
 
         }

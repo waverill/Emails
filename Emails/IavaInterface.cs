@@ -76,7 +76,7 @@ namespace Emails
         /// </summary>
         /// <param name="iavas">List of IAVAs of type Microsoft.Office.Interop.Outlook.MailItem</param>
         /// <returns>Number of IAVA acknowledements constructed</returns>
-        public void Make_IAVA_Pre_ACK(string temp)
+        public void Make_IAVA_Pre_ACK(string temp, Boolean save)
         {
             Microsoft.Office.Interop.Outlook.Application app = new Microsoft.Office.Interop.Outlook.Application();
            //_MI_ reply = ((Microsoft.Office.Interop.Outlook._MailItem)iava).Reply();
@@ -85,7 +85,8 @@ namespace Emails
            // Console.WriteLine(reply.To);
             reply.Subject = "Acknowledgement: Precoordination of " + this.IAVA_ID + " - " + this.IAVA_Title;
             reply.Body = temp;
-            this.Save_to_Draftbox(reply);
+            if (save)
+                this.Save_to_Draftbox(reply);
         }
 
 
@@ -134,7 +135,7 @@ namespace Emails
             }
         }
 
-        public void DoFinalAcks3(string content, string patchpath)
+        public String DoFinalAcks3(string content, string patchpath, Boolean save)
         {
            List<string> j = getAudits(patchpath);
            List<string> k = new List<string> ();
@@ -147,7 +148,7 @@ namespace Emails
               // MessageBox.Show(beg);
                k.Add(beg);
            }
-           Construct_Final(content,this.IAVA_Title,this.IAVA_ID, k);
+           return Construct_Final(content,this.IAVA_Title,this.IAVA_ID, k, save);
         }
 
         private List<string> getAudits(string patchpath)
